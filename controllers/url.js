@@ -7,17 +7,17 @@ async function handleGenerateNewShortURL(req, res) {
         return res.status(400).json({ error: "Missing URL" });
     }
     const shortID = shortid.generate(); // Correctly invoke shortid to generate a short ID
-    try {
+    
         await URL.create({
             shortId: shortID,
             redirectUrl: body.url,
             visitHistory: [],
         });
-        res.status(200).json({ message:`${shortID}` });
-    } catch (error) {
-        console.error("Error creating short URL:", error);
-        res.status(500).json({ error: "Internal server error" });
-    }
+        
+        
+        return res.render("home",{
+            id:shortID
+        });
 }
 async function handleGetAnalytics(req, res) {
     const shortId = req.params.shortId; // Corrected parameter name

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        body{
+            font-family: Georgia, 'Times New Roman', Times, serif;
+        }
+    </style>
+    <title>Title of the Document</title>
+</head>
+<body>
+   <h1>URL Shortner</h1>
+   <% if (locals.id) { %>
+    <p>URL Generated: http://localhost:8001/url/<%= locals.id %></p>
+    
+   <% } %>
+   <div>
+    <form method="POST" action="/url" >
+    <label>Enter Original Url</label>
+    <input type="text" placeholder="https://example.com" name="url" />
+    <button type="submit">Generate</button>
+</form>
+
+   </div>
+</body>
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>URL SHORTNER</h1>
+    <% if (locals.id) { %>
+        <p>URL Generated: http://localhost:8001/url/<%= id %> </p>
+     
+    <% } %>
+    <div>
+        <form method="POST" action="/url" >
+            <label>
+                Enter Original url
+            </label>
+            <input type=text placeholder="https://example.com" name="url" />
+            <button type="submit">Generate</button>
+        </form>
+    </div>
+</body>
+</html> -->

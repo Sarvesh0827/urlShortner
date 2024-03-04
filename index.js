@@ -5,10 +5,13 @@ const app = express();
 const PORT = 8001;
 const { connectToMongoDB } = require("./connect");
 const urlRoute = require("./routes/url");
+const staticRouter = require('./routes/staticRouter');
 const URL = require("./models/url");
+const path = require('path');
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -26,9 +29,22 @@ connectToMongoDB("mongodb://127.0.0.1:27017/short-url")
     process.exit(1); // Exit the process if unable to connect to MongoDB
   });
 
+app.set("view engine", "ejs");
+app.set('views',path.resolve('./views'));
+
+
 // Route for handling URL operations
-app.use("/", urlRoute);
-app.get("/:shortId", async (req, res) => {
+app.use("/url", urlRoute);
+app.use('/', staticRouter);
+// app.get('/test', async(req,res)=>{
+//   const allurls= await  URL.find({});
+//   return res.render("home",{
+//     urls: allurls
+//   });
+// })
+
+
+app.get("/url/:shortId", async (req, res) => {
   const shortId = req.params.shortId;
   try {
     const entry = await URL.findOneAndUpdate(
@@ -62,5 +78,4 @@ app.get("/:shortId", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on ${PORT}`);
 });
-
 

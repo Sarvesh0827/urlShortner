@@ -1,0 +1,102 @@
+<!DOCTYPE html> <html lang="en"> <head> <style> body{ font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; } </style> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Document</title> </head> <body> <h1>URL Shortner</h1> <% if (locals.id){ %> <p>URL GENERATED : http://localhost:8001/url/<%= id %></p> <% } %> <div> <form method="POST" action="/url"> <label> Enter  the URL you want to shorten: </label> <input type="text" placeholder="https://www.example.com/" name="url"/> <button type="submit">Generate</button> </form> </div> <div> <% {% if (locals.urls){ %> <table> <thead> <th> Sr No </th> <th>ShortID</th> <th>Redirect</th> <th>Clicks</th> </thead> <tbody> <% urls.forEach((url,index) => { %> <td><%=  index + 1 %></td> <td><%=  url.shortId %></td> <td> <%= url.redirectURL%> </td> <td> <%= url.visitHistory.length %> </td> <% }) %> </tbody> </table> <% } %} {% endif %} %> </div> </body> </html>
+
+------------------------x-----------------------
+
+
+
+// app.js
+
+const express = require("express");
+const app = express();
+const PORT = 8001;
+const path= require('path');
+const { connectToMongoDB } = require("./connect");
+const urlRoute = require("./routes/url");
+const staticRoute = require('./routes/staticRouter');
+const URL = require("./models/url");
+
+//Setting templating engine
+app.set( "view engine", "ejs" );
+app.set('views',path.resolve("./views"))
+
+
+// Middleware to parse JSON request bodies
+app.use(express.json());
+
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send("Something broke!");
+});
+
+
+// Connect to MongoDB
+connectToMongoDB("mongodb://127.0.0.1:27017/short-url")
+  .then(() => {
+    console.log("MongoDB Connected");
+  })
+  .catch((err) => {
+    console.error("Error connecting to MongoDB:", err);
+    process.exit(1); // Exit the process if unable to connect to MongoDB
+  });
+
+  app.get('/test',async(req,res)=>{
+    const allUrls = await  URL.find({});
+     return res.render('home',{
+      urls:allUrls,
+     });
+    // res.end(`<html lang="en">
+    // <head>
+    //     <title>Your Title Here</title>
+    // </head>
+    // <body>
+    // <ol>
+    // ${allUrls.map(url=>`<li>${url.shortId} - ${url.redirectUrl} ==> ${url.visitHistory.length}</li>`).join("")}
+    // </ol>
+       
+    // </body>
+    // </html>`);
+  });
+
+// Route for handling URL operations
+app.use("/url", urlRoute);
+app.use('/',staticRoute);
+app.get("/url/:shortId", async (req, res) => {
+  const shortId = req.params.shortId;
+  try {
+    const entry = await URL.findOneAndUpdate(
+      {
+        shortId,
+      },
+      {
+        $push: {
+          visitHistory: {
+            timestamp: Date.now(),
+          },
+        },
+      }
+    );
+
+    if (!entry) {
+      // Handle the case where no entry was found
+      return res.status(404).send("Short URL not found.");
+    }
+
+    res.redirect(entry.redirectUrl);
+  } catch (error) {
+    console.error("Error finding or updating URL:", error);
+    res.status(500).send("Internal server error");
+  }
+});
+
+
+
+
+
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server is running on ${PORT}`);
+});
+
+
