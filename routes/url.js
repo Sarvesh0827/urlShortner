@@ -4,7 +4,7 @@ const {handleGenerateNewShortURL,handleGetAnalytics} =require('../controllers/ur
 
 router.post('/',handleGenerateNewShortURL);
 
-router.get('/url/analytics/:shortId', handleGetAnalytics);
+router.get('/analytics/:shortId', handleGetAnalytics);
 
 
 module.exports=router;

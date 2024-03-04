@@ -30,46 +30,37 @@ connectToMongoDB("mongodb://127.0.0.1:27017/short-url")
 app.use("/", urlRoute);
 app.get("/:shortId", async (req, res) => {
   const shortId = req.params.shortId;
-  const entry = await URL.findOneAndUpdate(
-    {
-      shortId,
-    },
-    {
-      $push: {
-        visitHistory: {
-            timestamp:Date.now()
-        },
+  try {
+    const entry = await URL.findOneAndUpdate(
+      {
+        shortId,
       },
+      {
+        $push: {
+          visitHistory: {
+            timestamp: Date.now(),
+          },
+        },
+      }
+    );
+
+    if (!entry) {
+      // Handle the case where no entry was found
+      return res.status(404).send("Short URL not found.");
     }
-  );
-  res.redirect(entry.redirectUrl);
+
+    res.redirect(entry.redirectUrl);
+  } catch (error) {
+    console.error("Error finding or updating URL:", error);
+    res.status(500).send("Internal server error");
+  }
 });
+
+
 
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on ${PORT}`);
 });
 
-// const express = require('express');
-// const app = express();
-// const PORT = 8001;
-// const { connectToMongoDB } = require('./connect');
 
-// const urlRoute = require('./routes/url');
-
-// connectToMongoDB('mongodb://127.0.0.1:27017/short-url')
-//     .then(() => {
-//         console.log("MongoDB Connected");
-//     })
-//     .catch(err => {
-//         console.error("Error connecting to MongoDB:", err);
-//         process.exit(1); // Exit the process if unable to connect to MongoDB
-//     });
-
-// app.use('/', urlRoute);
-// // app.use(express.urlencoded({ extended: false }));
-// app.use(express.json()); // Middleware to parse JSON bodies
-
-// app.listen(PORT, () => {
-//     console.log(`Server is running on ${PORT}`);
-// });
