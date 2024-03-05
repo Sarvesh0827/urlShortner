@@ -2,16 +2,20 @@
 
 const express = require("express");
 const app = express();
+const cookieParser = require('cookie-parser');
+const {restrictToLoggedInUserOnly,checkAuth} =require('./middlewares/auth')
 const PORT = 8001;
 const { connectToMongoDB } = require("./connect");
+const URL = require("./models/url");
 const urlRoute = require("./routes/url");
 const staticRouter = require('./routes/staticRouter');
-const URL = require("./models/url");
+const userRoute = require('./routes/user');
 const path = require('path');
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -33,15 +37,13 @@ app.set("view engine", "ejs");
 app.set('views',path.resolve('./views'));
 
 
+
 // Route for handling URL operations
-app.use("/url", urlRoute);
-app.use('/', staticRouter);
-// app.get('/test', async(req,res)=>{
-//   const allurls= await  URL.find({});
-//   return res.render("home",{
-//     urls: allurls
-//   });
-// })
+app.use("/url",restrictToLoggedInUserOnly,urlRoute);
+app.use('/user', userRoute);
+app.use('/',checkAuth ,staticRouter);
+
+
 
 
 app.get("/url/:shortId", async (req, res) => {
